@@ -1,0 +1,16 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+psycopg2-binary
+alembic
+python-jose[cryptography]
+passlib[bcrypt]
+pydantic
+httpx
+python-dotenv
+loguru
+sentry-sdk
+pytest
+pytest-asyncio
+httpx[http2]
+pydantic[email]
