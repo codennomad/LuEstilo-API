@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from app.config import settings
 from app.database import engine, Base
-from app.auth.routes import router as auth_router
+from lixo.routes import router as auth_router
 
 from sentry_sdk import init as sentry_init
 

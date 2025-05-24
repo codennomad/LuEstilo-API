@@ -1,16 +1,36 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime
-from sqlalchemy.orm import declarative_base
-from datetime import datetime, timedelta, timezone
+from pydantic import BaseModel, EmailStr
+from typing import Optional
+from datetime import datetime
 
-Base = declarative_base()
+#Criar um usuário (entrada)
+class UserCreate(BaseModel):
+    name: str
+    email: EmailStr
+    password: str
+    
+#login
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
 
-class User(Base):
-    __tablename__ = "users"
+#Retorno de usuário (sem senha)
+class UserOut(BaseModel):
+    id: int
+    name: str
+    email: EmailStr
+    is_active: bool
+    is_admin: bool
+    created_at: datetime
 
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, nullable=False)
-    email = Column(String, unique=True, index=True, nullable=False)
-    hashed_password = Column(String, nullable=False)
-    is_active = Column(Boolean, default=True)
-    is_admin = Column(Boolean, default=False)
-    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    class Config:
+        from_attributes = True
+
+#Retorna o JWT (fazer login)
+class Token(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+   
+#Decodificar e validar o sub(email)
+class TokenData(BaseModel):
+    email: Optional[EmailStr] = None
