@@ -8,7 +8,7 @@ from app.models.models import Client
 from app.schemas.schemas import ClientCreate, ClientUpdate, ClientResponse
 from app.auth.deps import get_current_user, require_admin
 
-router = APIRouter(prefix="/clients", tags=["clients"])
+router = APIRouter(tags=["clients"])
 
 @router.get("/", response_model=List[ClientResponse])
 def list_clients(
@@ -27,7 +27,7 @@ def list_clients(
     if name:
         query = query.filter(Client.name.ilike(f"%{name}%"))
     if email:
-        query = query.filter(Client.email.ilike(f"%{email}"))
+        query = query.filter(Client.email.ilike(f"%{email}%"))
     return query.offset(skip).limit(limit).all()
 
 @router.post("/", response_model=ClientResponse, status_code=status.HTTP_201_CREATED)

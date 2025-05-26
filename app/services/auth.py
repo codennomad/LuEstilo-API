@@ -1,7 +1,7 @@
 # app/services/auth.py
-
+from app.auth.jwt import create_access_token, create_refresh_token,verify_token
 from datetime import datetime, timedelta, timezone
-from jose import jwt
+from jose import jwt, JWTError
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 from app.crud import user as user_crud
@@ -34,6 +34,7 @@ class AuthService:
         if existing_user:
             raise ValueError("Usuário já existe")
         return user_crud.create_user(db, user_data)
+    
 
     def login_user(self, db: Session, email: str, password: str):
         user = self.authenticate_user(db, email, password)
@@ -43,24 +44,43 @@ class AuthService:
                 detail="Email ou senha incorretos",
                 headers={"WWW-Authenticate": "Bearer"},
             )
-        access_token = self.create_access_token(data={"sub": str(user.id)})
+        new_access_token = create_access_token(data={"sub": str(user.id)}) #data={}
+        new_refresh_token = create_refresh_token(data={"sub": str(user.id)})#data={}
         return {
-            "access_token": access_token,
+            "access_token": new_access_token,
+            "refresh_token": new_refresh_token,
             "token_type": "bearer",
             "user": {
                 "id": user.id,
                 "email": user.email,
                 "name": user.name,
-                "is_admin": user.is_admin
+                "role": user.role
             }
         }
 
-    def refresh_token(self, db: Session, username: str):
-        user = user_crud.get_user_by_email(db, username)
-        if not user:
-            return None
-        access_token = self.create_access_token(data={"sub": str(user.id)})
-        return {
-            "access_token": access_token,
-            "token_type": "bearer"
-        }
+    def refresh_token(self, db: Session, refresh_token: str):
+            payload = verify_token(refresh_token)
+            if not payload or "sub" not in payload:
+                raise HTTPException(status_code=401, detail="Refresh token inválido ou expirado")
+            
+            user_id =int(payload["sub"])
+            user = user_crud.get_user_by_id(db, user_id)
+            if not user:
+                raise HTTPException(status_code=404, detail="Usuário não encontrado")
+            
+            new_access_token = create_access_token(data={"sub": str(user.id)}) #data={}
+            new_refresh_token = create_refresh_token(data={"sub": str(user.id)})#data={}
+            
+            return {
+                "access_token": new_access_token,
+                "refresh_token": new_refresh_token,
+                "token_type": "bearer",
+                "user": {
+                    "id": user.id,
+                    "email": user.email,
+                    "name": user.name,
+                    "role": user.role
+                }
+            }
+        
+        

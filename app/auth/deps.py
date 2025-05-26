@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from app.database import SessionLocal
 from app.models.models import User
 from app.auth.utils import decode_token
-from app.schemas.schemas import TokenData
+from app.schemas.schemas import Token
 import logging
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
@@ -36,14 +36,14 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     )
     try:
         payload = decode_token(token)
-        email: str = payload.get("sub")
-        if email is None:
+        user_id = payload.get("sub")
+        if user_id is None:
             raise credentials_exception
     except JWTError as e:
         logger.warning(f"Invalid Token: {e}")
         raise credentials_exception
     
-    user = db.query(User).filter(User.email == email).first()
+    user = db.query(User).filter(User.id == int(user_id)).first()
     if user is None:
         raise credentials_exception
     return user

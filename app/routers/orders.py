@@ -9,7 +9,7 @@ from app.models.models import Order, Product, Client
 from app.schemas.schemas import OrderCreate, OrderUpdate, OrderResponse
 from app.auth.deps import require_user, require_admin
 
-router = APIRouter(prefix="/orders", tags=["orders"])
+router = APIRouter(tags=["orders"])
 
 @router.get(
     "/",

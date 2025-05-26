@@ -11,7 +11,7 @@ from app.auth.deps import get_current_user, require_admin, require_user
 
 import json
 
-router = APIRouter(prefix="/products", tags=["products"])
+router = APIRouter(tags=["products"])
 
 @router.get("/", response_model=List[ProductResponse])
 def list_products(
@@ -41,8 +41,11 @@ def list_products(
         query = query.filter(Product.price >= min_price)
     if max_price is not None:
         query = query.filter(Product.price <= max_price)
-    if available:
-        query = query.filter(Product.stock > 0)
+    if available is not None:
+        if available:
+            query = query.filter(Product.stock > 0)
+        else:
+            query = query.filter(Product.stock <= 0)
     products = query.offset(skip).limit(limit).all()
     return products
 
@@ -69,7 +72,7 @@ def create_product(product_in: ProductCreate, db: Session = Depends(get_db), cur
         
     product = Product(
         description=product_in.description,
-        price=product_in.description,
+        price=product_in.price,
         barcode=product_in.barcode,
         section=product_in.section,
         stock=product_in.stock,
@@ -104,8 +107,9 @@ def update_product(id: int, product_in: ProductUpdate, db: Session = Depends(get
     product = db.query(Product).filter(Product.id == id).first()
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
+    
     if product_in.barcode and product_in.barcode != product.barcode:
-        if db.query(Product).filter(Product.barcode == product_in.barcode).first():
+        if db.query(Product).filter(Product.barcode == product_in.barcode, Product.id != id).first():
             raise HTTPException(status_code=400, detail="Barcode already registered")
         product.barcode = product_in.barcode
     if product_in.description is not None:

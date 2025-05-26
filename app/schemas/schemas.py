@@ -1,28 +1,27 @@
 from typing import List, Optional
 from datetime import date, datetime
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, field_validator
+from app.models.models import UserRole as UserRoleEnum
 from enum import Enum
-
-
-# ENUMS
-
-class UserRoleEnum(str, Enum):
-    ADMIN = "admin"
-    USER = "user"
+from decimal import Decimal
+import json
 
 
 # USER SCHEMAS
 
 class UserBase(BaseModel):
-    username: str
+    name: str
     email: EmailStr
     role: UserRoleEnum
 
-class UserCreate(UserBase):
+class UserCreate(UserBase): # add
+    name: str #
+    email: EmailStr #
     password: str
+    role: UserRoleEnum #
 
 class UserUpdate(BaseModel):
-    username: Optional[str] = None
+    name: Optional[str] = None
     email: Optional[EmailStr] = None
     role: Optional[UserRoleEnum] = None
     password: Optional[str] = None
@@ -44,6 +43,13 @@ class ClientBase(BaseModel):
     name: str
     email: EmailStr
     cpf: str
+    
+    @field_validator("cpf")
+    @classmethod
+    def validate_cpf(cls, v):
+        if not v.isdigit() or len(v) != 11:
+            raise ValueError("CPF must contain 11 numeric digits")
+        return v
 
 class ClientCreate(ClientBase):
     pass
@@ -66,7 +72,7 @@ class ClientResponse(ClientBase):
 
 class ProductBase(BaseModel):
     description: str
-    price: float  # Se for Decimal no model, melhor usar condecimal aqui
+    price: Decimal
     barcode: str
     section: str
     stock: int
@@ -78,7 +84,7 @@ class ProductCreate(ProductBase):
 
 class ProductUpdate(BaseModel):
     description: Optional[str] = None
-    price: Optional[float] = None
+    price: Optional[Decimal] = None
     barcode: Optional[str] = None
     section: Optional[str] = None
     stock: Optional[int] = None
@@ -89,22 +95,46 @@ class ProductResponse(ProductBase):
     id: int
     created_at: datetime
     updated_at: Optional[datetime] = None
+    
+    @field_validator("images", mode="before")
+    @classmethod
+    def parse_images(cls, v):
+        if isinstance(v, str):
+            try:
+                data = json.loads(v)
+                if isinstance(data, list) and all(isinstance(i, str) for i in data):
+                    return data
+            except json.JSONDecodeError:
+                pass
+            return[]
+        return v
 
     class Config:
         from_attributes = True
+        json_encoders = {
+            Decimal: lambda v: str(v)
+        }
 
 
 # ORDER SCHEMAS
 
+class OrderStatusEnum(str, Enum):
+    PENDING = "pending"
+    SHIPPED = "shipped"
+    DELIVERED = "delivered"
+    CANCELLED = "cancelled"
+
 class OrderBase(BaseModel):
     client_id: int
-    status: str
+    status: OrderStatusEnum
 
 class OrderCreate(OrderBase):
+    client_id: int
+    status: str
     product_ids: List[int]
 
 class OrderUpdate(BaseModel):
-    status: Optional[str] = None
+    status: Optional[OrderStatusEnum] = None
     product_ids: Optional[List[int]] = None
 
 class OrderResponse(OrderBase):
@@ -126,10 +156,24 @@ class UserLogin(BaseModel):
 
 class Token(BaseModel):
     access_token: str
-    token_type: str = "bearer"
+    refresh_token: str
+    token_type: str 
+    user: dict
 
 class TokenData(BaseModel):
     sub: Optional[str] = None  # usually user email
 
 class TokenRefreshRequest(BaseModel):
-    username: str
+    refresh_token: str
+
+class UserInToken(BaseModel):
+    id: int
+    email: str
+    name: str
+    role: UserRoleEnum
+    
+class TokenWithUser(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str
+    user: UserInToken

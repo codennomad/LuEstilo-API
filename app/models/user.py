@@ -1,12 +1,14 @@
 from pydantic import BaseModel, EmailStr
-from typing import Optional
+from typing import Optional, Literal
 from datetime import datetime
+from app.models.models import User
 
 #Criar um usuário (entrada)
-class UserCreate(BaseModel):
-    name: str
-    email: EmailStr
-    password: str
+#class UserCreate(BaseModel):
+    #name: str
+    #email: EmailStr
+    #password: str
+    #role: Optional[Literal["admin", "user"]] = 
     
 #login
 class UserLogin(BaseModel):
@@ -19,7 +21,7 @@ class UserOut(BaseModel):
     name: str
     email: EmailStr
     is_active: bool
-    is_admin: bool
+    is_admin: User.is_admin
     created_at: datetime
 
     class Config:

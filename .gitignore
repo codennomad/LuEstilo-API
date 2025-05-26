@@ -1,7 +1,47 @@
-venv
-.venv
-alembic
-.vscode
+# Ambiente virtual
+venv/
+.venv/
+
+# Configurações de IDE
+.vscode/
+.idea/
+
+# Arquivos de ambiente
 .env
+.env.*
+
+# Alembic
 alembic.ini
-.mypy_cache
+alembic/versions/
+
+# Cache e compilados Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.mypy_cache/
+.pytest_cache/
+
+# Logs
+*.log
+
+# Arquivos temporários
+*.swp
+*.swo
+*.bak
+*.tmp
+
+# Mac/Linux/Windows noise
+.DS_Store
+Thumbs.db
+
+# Arquivos de banco de dados (caso use SQLite)
+*.sqlite3
+*.db
+
+# Pip tools
+pip-wheel-metadata/
+*.egg-info/
+dist/
+build/
+migrations
