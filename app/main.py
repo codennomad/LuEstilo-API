@@ -29,3 +29,14 @@ app.include_router(clientes_router, prefix="/clients", dependencies=[Depends(get
 app.include_router(orders_router, prefix="/orders", dependencies=[Depends(get_current_user)])
 app.include_router(products_router, prefix="/products", dependencies=[Depends(get_current_user)])
 app.include_router(users_router, prefix="/users", dependencies=[Depends(get_current_user)])
+
+
+if __name__ == "__main__":
+    import os
+    import uvicorn
+    
+    uvicorn.run(
+        "app.main:app",
+        host="0.0.0.0",
+        port=int(os.environ.get("PORT", 8000))
+    )

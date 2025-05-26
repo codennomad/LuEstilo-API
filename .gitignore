@@ -13,6 +13,7 @@ venv/
 # Alembic
 alembic.ini
 alembic/versions/
+alembic
 
 # Cache e compilados Python
 __pycache__/
