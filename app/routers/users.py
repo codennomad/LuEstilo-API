@@ -8,7 +8,6 @@ from app.auth.deps import get_db, require_admin, require_user, get_current_user
 from app.models.models import User
 
 router = APIRouter(
-    prefix="/users",
     tags=["users"],
 )
 
